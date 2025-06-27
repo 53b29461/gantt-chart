@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シンプルガントチャート</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>ガントチャート</h1>
+        
+        <div class="task-input">
+            <h2>タスク追加</h2>
+            <div class="input-group">
+                <input type="text" id="taskName" placeholder="タスク名" />
+                <input type="number" id="taskDays" placeholder="日数" min="1" value="1" />
+                <button id="addTask">追加</button>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="task-list" id="taskList">
+                <!-- タスクリストがここに表示される -->
+            </div>
+            <div class="gantt-chart">
+                <canvas id="ganttCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
