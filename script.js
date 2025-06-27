@@ -67,6 +67,31 @@ class GanttChart {
         this.rowHeight = 40;
         this.headerHeight = 60;
         this.leftPadding = 10;
+        
+        // ドラッグリサイズ用の状態管理
+        this.taskBars = []; // タスクバーの位置情報
+        this.isDragging = false;
+        this.dragTaskIndex = -1;
+        this.dragStartX = 0;
+        this.dragStartDays = 0;
+        
+        this.setupMouseEvents();
+    }
+    
+    setupMouseEvents() {
+        // マウスイベントリスナーを追加
+        this.canvas.addEventListener('mousedown', (e) => this.handleMouseDown(e));
+        this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+        this.canvas.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+        this.canvas.addEventListener('mouseleave', (e) => this.handleMouseUp(e));
+    }
+    
+    getMousePos(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
     }
 
     draw() {
@@ -165,6 +190,7 @@ class GanttChart {
 
     drawTasks() {
         const tasks = this.taskManager.tasks;
+        this.taskBars = []; // 位置情報をリセット
         
         tasks.forEach((task, index) => {
             const startDate = this.taskManager.getTaskStartDate(index);
@@ -176,6 +202,16 @@ class GanttChart {
             const y = this.headerHeight + index * this.rowHeight + 10;
             const width = task.days * this.dayWidth - 5;
             const height = this.rowHeight - 20;
+            
+            // タスクバーの位置情報を保存
+            this.taskBars.push({
+                index: index,
+                x: x,
+                y: y,
+                width: width,
+                height: height,
+                rightEdge: x + width
+            });
             
             // 位置ベースで色を取得
             const taskColor = this.taskManager.getTaskColor(index);
@@ -258,6 +294,76 @@ class GanttChart {
         
         return (yiq >= 128) ? '#000000' : '#ffffff';
     }
+    
+    // マウスイベントハンドラ
+    handleMouseDown(e) {
+        const mousePos = this.getMousePos(e);
+        const hitTask = this.getTaskBarAtPosition(mousePos.x, mousePos.y);
+        
+        if (hitTask && this.isNearRightEdge(mousePos.x, hitTask)) {
+            this.isDragging = true;
+            this.dragTaskIndex = hitTask.index;
+            this.dragStartX = mousePos.x;
+            this.dragStartDays = this.taskManager.tasks[hitTask.index].days;
+            this.canvas.style.cursor = 'ew-resize';
+        }
+    }
+    
+    handleMouseMove(e) {
+        const mousePos = this.getMousePos(e);
+        
+        if (this.isDragging) {
+            // ドラッグ中の処理
+            const deltaX = mousePos.x - this.dragStartX;
+            const deltaDays = Math.round(deltaX / this.dayWidth);
+            const newDays = Math.max(1, this.dragStartDays + deltaDays);
+            
+            // 一時的にタスクの日数を更新
+            this.taskManager.tasks[this.dragTaskIndex].days = newDays;
+            
+            // リアルタイムで再描画
+            this.draw();
+        } else {
+            // ドラッグしていない時のカーソル制御
+            const hitTask = this.getTaskBarAtPosition(mousePos.x, mousePos.y);
+            if (hitTask && this.isNearRightEdge(mousePos.x, hitTask)) {
+                this.canvas.style.cursor = 'ew-resize';
+            } else {
+                this.canvas.style.cursor = 'default';
+            }
+        }
+    }
+    
+    handleMouseUp(e) {
+        if (this.isDragging) {
+            // ドラッグ終了時に保存とイベント発火
+            this.taskManager.saveTasks();
+            this.isDragging = false;
+            this.dragTaskIndex = -1;
+            
+            // カスタムイベントを発火してUIControllerに通知
+            const event = new CustomEvent('taskUpdated');
+            document.dispatchEvent(event);
+        }
+        this.canvas.style.cursor = 'default';
+    }
+    
+    // タスクバーのヒットテスト
+    getTaskBarAtPosition(x, y) {
+        for (let bar of this.taskBars) {
+            if (x >= bar.x && x <= bar.rightEdge && 
+                y >= bar.y && y <= bar.y + bar.height) {
+                return bar;
+            }
+        }
+        return null;
+    }
+    
+    // 右端付近かどうかを判定
+    isNearRightEdge(x, taskBar) {
+        const edgeThreshold = 8; // 右端から8px以内
+        return x >= taskBar.rightEdge - edgeThreshold && x <= taskBar.rightEdge + 2;
+    }
 }
 
 // UIコントローラー
@@ -294,6 +400,11 @@ class UIController {
             if (e.key === 'Enter') {
                 document.getElementById('addTask').click();
             }
+        });
+        
+        // ガントチャートからのタスク更新イベントを受信
+        document.addEventListener('taskUpdated', () => {
+            this.render();
         });
     }
 
