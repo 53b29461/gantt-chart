@@ -125,17 +125,17 @@ button:hover {
 
 .delete-btn {
     border: none;
-    padding: 2px 8px;
-    border-radius: 3px;
+    padding: 0 8px;
     cursor: pointer;
-    font-size: 18px;
+    font-size: 20px;
     font-weight: bold;
     line-height: 1;
     transition: opacity 0.2s;
+    background: transparent;
 }
 
 .delete-btn:hover {
-    opacity: 0.8;
+    opacity: 0.6;
 }
 
 .gantt-chart {
