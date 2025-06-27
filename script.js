@@ -324,7 +324,7 @@ class UIController {
                     <div class="task-name">${task.name}</div>
                     <div class="task-days">${task.days}日</div>
                 </div>
-                <button class="delete-btn" data-id="${task.id}" style="background-color: ${textColor === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)'}; color: ${textColor};">削除</button>
+                <button class="delete-btn" data-id="${task.id}" style="background-color: ${textColor === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)'}; color: ${textColor};">×</button>
             `;
             
             // ドラッグイベント
