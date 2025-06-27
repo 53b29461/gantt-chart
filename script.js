@@ -199,6 +199,22 @@ class GanttChart {
                 this.ctx.fillStyle = this.darkenColor(task.color);
                 this.ctx.fillRect(x, y, progressWidth, height);
             }
+            
+            // タスク名を表示
+            this.ctx.save();
+            this.ctx.clip(new Path2D(`M${x} ${y} h${width} v${height} h-${width} z`));
+            
+            // 文字色を背景色に応じて決定
+            const textColor = this.getContrastColor(task.color);
+            this.ctx.fillStyle = textColor;
+            this.ctx.font = '12px sans-serif';
+            this.ctx.textAlign = 'left';
+            this.ctx.textBaseline = 'middle';
+            
+            // タスク名を描画（左側に少し余白を設ける）
+            this.ctx.fillText(task.name, x + 5, y + height / 2);
+            
+            this.ctx.restore();
         });
     }
 
@@ -230,6 +246,19 @@ class GanttChart {
         return '#' + (0x1000000 + (r < 255 ? r < 1 ? 0 : r : 255) * 0x10000 +
             (g < 255 ? g < 1 ? 0 : g : 255) * 0x100 +
             (b < 255 ? b < 1 ? 0 : b : 255)).toString(16).slice(1);
+    }
+    
+    getContrastColor(hexColor) {
+        // 背景色の輝度を計算して、白か黒の文字色を返す
+        const num = parseInt(hexColor.replace('#', ''), 16);
+        const r = (num >> 16) & 255;
+        const g = (num >> 8) & 255;
+        const b = num & 255;
+        
+        // 輝度計算（YIQ方式）
+        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        
+        return (yiq >= 128) ? '#000000' : '#ffffff';
     }
 }
 
