@@ -15,25 +15,20 @@ class TaskManager {
     }
 
     addTask(name, days) {
-        // 使用済みの色を確認して、未使用の色を優先的に割り当てる
-        const usedColors = this.tasks.map(t => t.color);
-        let color = this.taskColors.find(c => !usedColors.includes(c));
-        
-        // 全ての色が使用済みの場合は、順番に割り当てる
-        if (!color) {
-            const colorIndex = this.tasks.length % this.taskColors.length;
-            color = this.taskColors[colorIndex];
-        }
-        
         const task = {
             id: Date.now(),
             name: name,
-            days: parseInt(days),
-            color: color
+            days: parseInt(days)
+            // colorプロパティを削除 - 位置ベースで色を決定
         };
         this.tasks.push(task);
         this.saveTasks();
         return task;
+    }
+    
+    getTaskColor(index) {
+        // タスクの位置（インデックス）に基づいて色を返す
+        return this.taskColors[index % this.taskColors.length];
     }
 
     deleteTask(id) {
@@ -182,12 +177,15 @@ class GanttChart {
             const width = task.days * this.dayWidth - 5;
             const height = this.rowHeight - 20;
             
+            // 位置ベースで色を取得
+            const taskColor = this.taskManager.getTaskColor(index);
+            
             // タスクバー描画
-            this.ctx.fillStyle = task.color;
+            this.ctx.fillStyle = taskColor;
             this.ctx.fillRect(x, y, width, height);
             
             // タスクバーの枠線
-            this.ctx.strokeStyle = this.darkenColor(task.color);
+            this.ctx.strokeStyle = this.darkenColor(taskColor);
             this.ctx.lineWidth = 1;
             this.ctx.strokeRect(x, y, width, height);
             
@@ -196,7 +194,7 @@ class GanttChart {
                 const progressDays = Math.min(task.days, -daysFromToday);
                 const progressWidth = progressDays * this.dayWidth - 5;
                 
-                this.ctx.fillStyle = this.darkenColor(task.color);
+                this.ctx.fillStyle = this.darkenColor(taskColor);
                 this.ctx.fillRect(x, y, progressWidth, height);
             }
             
@@ -205,7 +203,7 @@ class GanttChart {
             this.ctx.clip(new Path2D(`M${x} ${y} h${width} v${height} h-${width} z`));
             
             // 文字色を背景色に応じて決定
-            const textColor = this.getContrastColor(task.color);
+            const textColor = this.getContrastColor(taskColor);
             this.ctx.fillStyle = textColor;
             this.ctx.font = '12px sans-serif';
             this.ctx.textAlign = 'left';
@@ -313,15 +311,20 @@ class UIController {
             taskItem.draggable = true;
             taskItem.dataset.index = index;
             
+            // 位置ベースで色を取得
+            const taskColor = this.taskManager.getTaskColor(index);
+            const textColor = this.ganttChart.getContrastColor(taskColor);
+            
+            // タスク項目全体に背景色を設定
+            taskItem.style.backgroundColor = taskColor;
+            taskItem.style.color = textColor;
+            
             taskItem.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div class="color-indicator" style="width: 20px; height: 20px; background-color: ${task.color}; border-radius: 4px;"></div>
-                    <div>
-                        <div class="task-name">${task.name}</div>
-                        <div class="task-days">${task.days}日</div>
-                    </div>
+                <div>
+                    <div class="task-name">${task.name}</div>
+                    <div class="task-days">${task.days}日</div>
                 </div>
-                <button class="delete-btn" data-id="${task.id}">削除</button>
+                <button class="delete-btn" data-id="${task.id}" style="background-color: ${textColor === '#ffffff' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)'}; color: ${textColor};">削除</button>
             `;
             
             // ドラッグイベント
