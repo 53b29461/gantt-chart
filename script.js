@@ -15,11 +15,21 @@ class TaskManager {
     }
 
     addTask(name, days) {
+        // 使用済みの色を確認して、未使用の色を優先的に割り当てる
+        const usedColors = this.tasks.map(t => t.color);
+        let color = this.taskColors.find(c => !usedColors.includes(c));
+        
+        // 全ての色が使用済みの場合は、順番に割り当てる
+        if (!color) {
+            const colorIndex = this.tasks.length % this.taskColors.length;
+            color = this.taskColors[colorIndex];
+        }
+        
         const task = {
             id: Date.now(),
             name: name,
             days: parseInt(days),
-            color: this.taskColors[this.tasks.length % this.taskColors.length]
+            color: color
         };
         this.tasks.push(task);
         this.saveTasks();
@@ -275,9 +285,12 @@ class UIController {
             taskItem.dataset.index = index;
             
             taskItem.innerHTML = `
-                <div>
-                    <div class="task-name">${task.name}</div>
-                    <div class="task-days">${task.days}日</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="color-indicator" style="width: 20px; height: 20px; background-color: ${task.color}; border-radius: 4px;"></div>
+                    <div>
+                        <div class="task-name">${task.name}</div>
+                        <div class="task-days">${task.days}日</div>
+                    </div>
                 </div>
                 <button class="delete-btn" data-id="${task.id}">削除</button>
             `;
