@@ -465,9 +465,13 @@ class UIController {
             taskItem.addEventListener('drop', (e) => {
                 e.preventDefault();
                 const fromIndex = parseInt(e.dataTransfer.getData('index'));
-                const toIndex = parseInt(e.target.closest('.task-item').dataset.index);
                 
-                if (fromIndex !== toIndex) {
+                // ドロップ先のインデックスを正確に計算
+                const draggingItem = document.querySelector('.dragging');
+                const allItems = [...this.taskList.querySelectorAll('.task-item')];
+                const toIndex = allItems.indexOf(draggingItem);
+                
+                if (fromIndex !== toIndex && toIndex !== -1) {
                     this.taskManager.reorderTasks(fromIndex, toIndex);
                     this.render();
                 }
