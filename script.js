@@ -390,6 +390,12 @@ class UIController {
             }
         });
 
+        // タイムライン更新ボタン
+        document.getElementById('updateTimeline').addEventListener('click', () => {
+            // 現在の日付で開始日を再計算
+            this.render();
+        });
+
         // Enterキーでも追加
         document.getElementById('taskName').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
