@@ -7,7 +7,28 @@ class TaskManager {
 
     loadTasks() {
         const saved = localStorage.getItem('ganttTasks');
-        return saved ? JSON.parse(saved) : [];
+        if (saved) {
+            return JSON.parse(saved);
+        } else {
+            // 初回訪問時のデモタスク
+            return [
+                {
+                    id: Date.now() + 1,
+                    name: 'タスクA',
+                    days: 3
+                },
+                {
+                    id: Date.now() + 2,
+                    name: 'タスクB', 
+                    days: 5
+                },
+                {
+                    id: Date.now() + 3,
+                    name: 'タスクC',
+                    days: 2
+                }
+            ];
+        }
     }
 
     saveTasks() {
