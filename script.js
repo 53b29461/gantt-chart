@@ -264,11 +264,11 @@ class GanttChart {
         this.ctx.stroke();
         this.ctx.setLineDash([]);
         
-        // "今日" ラベル
+        // "今日" ラベル（下部に配置）
         this.ctx.fillStyle = '#ff0000';
         this.ctx.font = 'bold 12px sans-serif';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('今日', x, 10);
+        this.ctx.fillText('今日', x, this.canvas.height - 10);
     }
 
     darkenColor(color) {
